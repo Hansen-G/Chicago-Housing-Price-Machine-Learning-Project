@@ -1,0 +1,883 @@
+---
+title: "EN.570.616.01.SP22 Data Analytics in Environmental Health and Engineering"
+author: "Hansen Guo, Xinyu Yang, Hangrui Liu"
+date: "5/10/2022"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(nnet)
+library(car)
+library(MASS)
+library(ggplot2)
+library(foreign)
+library(Hmisc)
+library(brant)
+library(openxlsx)
+library(ggvis)
+library(class)
+library(gmodels)
+library(skmeans)
+library(gridExtra)
+library(tidyverse)
+library(corrplot)
+library(gridExtra)
+library(GGally)
+library(knitr)
+library(tree)
+library(rpart)
+library(kernlab)
+library(doParallel)
+library(dplyr)
+library(cluster)
+library(factoextra)
+library(nnet)
+library(ISLR)
+library(foreign)
+library(Hmisc)
+library(brant)
+library(openxlsx)
+library(grid)
+library(pROC)
+library(tidyverse)
+library(xgboost)
+library(caret)
+library(tidyverse)
+library(kernlab)
+library(ranger) 
+library(mltools) 
+library(data.table)
+require(randomForest, quietly=TRUE)
+library(e1071)
+library(tidyverse)     
+library(corrplot)
+library(corrr)
+library(kernlab)  
+library(DT)
+library(ROCR)
+library(cvAUC)
+library(Deducer)
+library(psych) #Scatterplot matrix
+library(neuralnet) #artifical neural network
+library(maptree)
+library(ggpubr)
+library(randomForest)
+library (MASS)
+```
+
+
+
+
+
+
+# Group Project
+## Chicago Home Price Forecast: The Influence of a House's Characteristics on Its Sale Price
+
+
+
+\pagebreak
+
+
+
+
+
+# 1. Executive Summary
+
+Housing has become one of the major challenges facing the world's metropolises. In addition to the impact of macroeconomic changes, the characteristics of the housing stock itself constitute a clear driver of price changes (Bailey, Muth & Nourse, 1963). Variations in the quality of different homes and different characteristics make it difficult to estimate the price of a real property, so real estate appraisal reviews have played an increasingly important role in the real estate industry (Pavlov, 2000). There is a strong and continuing demand for techniques to determine the accuracy of appraisal reports from lenders, institutional investors, courts, and others who make decisions based on the veracity of appraisal reports (Benjamin, Guttery & Sirmans, 2004; Isakson, 1998). The value of multiple regression analysis and machine learning techniques in this area has been documented as a stand-alone technique to check the accuracy of appraisal reports (Isakson, 2001; Mak, Choy & Ho, 2010).
+
+Therefore, we selected a proprietary collection of real estate data provided by the Chicago Cook County Assessor and other private and public organizations for analytical modeling to examine home price issues. The dataset includes homes sold in three areas of Cook County (North Township, City of Chicago, and Southwest Township) for tax years 2003-2018. We will examine the impact of different variables on property values in Chicago. This allows us to dig deeper into the variables and provide a model that can more accurately estimate home values. In this way, individuals and professional organizations can better price homes based on available information.
+
+We use 20 explanatory variables that include almost all aspects of Cook County homes. Statistical regression models and machine learning regression models are applied and further compared based on their performance to better estimate the final price of each home. This projectBy applying various techniques from data analysis (such as linear regression and multiple linear regression) to its real residential property prices helps us understand the changes over years and potentially forecast future prices. Secondly, based on the house location we can do clustering (unsupervised learning) about Walkfac (Car-dependent, Walkable, Somewhat walkable), and we also check if there is a correlation between Walkscore and Moreover, we also want to know if the price per foot is related to the house located in Chicago. This project employs methods including correlation matrix, types of statistical tests, and OLS regression to analyze the random sample of homes that have sold in the three regions of Cook County (Northern Townships, City of Chicago, Southwest Townships) during the tax years 2003-2018 and to predict sale price to analyze the data and build an This project has big and detailed data with the data of the tax years 2003-2018. 
+
+Based on the data analysis results, we can see all the machine learning methods, the most important factor is location, then is building square feet, it quite makes sense. And then we can see the facility is second most important to the house price which including central air and fireplace, age, property class. At the same time, we have established a high-accuracy prediction model, and made high-accuracy predictions on housing prices based on 14 variables. Finally, based on unsupervised learning, we cluster the houses according to latitude and longitude and summarize the features of different categories.
+
+This project has big and detailed data with high accuracy models, and we believe it provided us with very insightful results about the Chicago house market . These models estimate the implied price of each feature in the price distribution, so it can better explain real-world phenomena and provide a more comprehensive understanding of the relationship between housing characteristics and prices.
+
+
+# 2. Project Description
+
+
+## 2.1 Describe the data set for the course project
+### 2.1.1 Introduction
+The data set is a collection of proprietary data sourced from the Cook County Assessor and other private and public organizations which includes homes that have sold in the three regions of Cook County (Northern Townships, City of Chicago, Southwest Townships) during tax years 2003-2018. We will study the effects of different variables on property values in Chicago. 
+
+### 2.1.2 Data Dictionary
+1. Property Address: Property street address, not the address of the taxpayer.
+
+2. Tax Year: Tax year of sale. Tax year refers to the year in which taxes due. Taxes are billed a year in arrears. If a sale occurred in calendar year 2018, it will be in tax year 2019.
+
+3. Property Class: Represents different housing classes. Details can be found via: https://www.cookcountyassessor.com/assets/forms/classcode.pdf
+
+4. Type of Residence:
+Type of residence - 1 = one story, 2 = two-story, 3 = three-story or higher, 4 = split level, 5 = 1.5 story, 6 = 1.6 story, 7 = 1.7 story , 8 = 1.8 story , 9 = 1.9 story
+(Note: residences with 1.5 - 1.9 stories are one story and have partial livable attics and are classified based on the square footage of the attic compared to the first floor of the house. So, 1.5 story houses have an attic that is 50% of the area of the first floor, 1.6 story houses are 60%, 1.7 are 70%, etc. However, what is recorded on the field card differs from what is in the database. All 1.5 - 1.9 story houses are coded as 5)
+
+5. Rooms: Number of rooms in the property (excluding baths). Not to be confused with bedrooms.
+
+6. Bedrooms: Number of bedrooms in the property, defined based on building square foot and the judgment of the person in the field.
+
+7. Basement: Basement type - 0 = None, 1 = Full, 2 = Slab, 3 = Partial, 4 = Crawl
+
+8. Fireplaces: Number of fireplaces, counted as the number of flues one can see from the outside of the building.
+
+9. Central Air Is central airconditioning present?: - 1 = yes, 2 = no
+
+10. Full Baths: Number of full bathrooms, defined as having a bath or shower. If this value is missing, the default value is set to 1.
+
+11. Half Baths: Number of half baths, defined as bathrooms without a shower or bathtub.
+
+12. Building Square Feet: Building square feet, as measured from the exterior of the property
+
+13. Land Square: Feet Square feet of the land (not just the building) of the property. Note that land is divided into 'plots' and 'parcels' - this field applies to parcels, identified by PIN
+
+14. Age: Age of the property. If missing, this defaults to 10. This field is a combination of original age and effective age where original age refers to the oldest component of the building and effective age is a relative judgement due to renovations or other improvements. For instance, if a property is completely demolished and built up again, the age resets to 1. But if portions of the original structure are kept, it may be more complicated to determine the age.
+
+15. Longitude: Longitude coordinate of the property's location, as defined by the centroid of the parcel shape in GIS.
+
+16. Latitude: Latitude coordinate of the property's location, as defined by the centroid of the parcel shape in GIS.
+
+17. Sale Price: Sale price
+
+### 2.1.3 Data source and links:
+
+The data can be acquired from Cook County Government website via https://datacatalog.cookcountyil.gov/. 
+
+
+## 2.2 Idea and explanation
+Based on the dataset we have already found, it includes a variety kind of parameters so we can use this to do several kinds of OLS analysis, prediction or other kinds of analysis. We used OLS to analyze the dataset. Besides, asset marketing is becoming more and more important in modern days. We can predict the developing tendency based on type of residence, buyers’ age and so on. Moreover, we may also use this to extrapolate population mobility on some level. In this dataset, we also have the coordinates of the residence, we can use this to see the cluster characteristics.
+The most important aspect we think is the sale price of a house. This point is one of the most important factors for both buyers and real estate dealers. Above all, we can do a lot of things according to this dataset. After cleaning the dataset, we first performed an exploratory analysis of the dataset and constructed more complex machine learning models based on the results.
+
+
+## 2.3 Data clean
+
+1. Subset the data
+As the single family homes as part of the process of building an accurate valuation model. Using Property_Class (202 - 210), subset the data to just properties whose class the Assessor has coded as "single family homes" of any age or size.
+
+2. Bath
+The Half_Baths column contains the number of half bathrooms. For the purposes of my analysis, I want to code a half bathroom as a fraction of a full bathroom. we should multiply all the values in the column by .5 and reassign them to that column.
+
+Drop all rows that have any missing values in the Half Baths and Full Baths columns. Create a new column, Total_Baths, where Total_Baths = Full_Baths + Half_Baths*.5 Next, drop the Full_Baths and Half_Baths columns Create a new column, Log_Sale_Price, where Log_Sale_Price = log(Sale_Price)
+
+
+3.Data format
+Set its index to Tax_Year; make sure the old numerical index doesn't wind up as a new column Set the datatype for the Central_Air column to "category".
+
+## 2.4 Exploratory Data Analysis
+
+The original dataset size is 7691 rows × 20 columns. The variables of interest are [Rooms, Bedrooms, FirePlaces, Central_Air, Building_Square_Feet, Land_Square_Feet, Age, Longitude, Latitude, Walkscore, Total_Baths].We did some EDA and visualize some representative variables below to get an overview of our data and to detect some important matrices and trends that might help with our further analysis and model building. 
+
+```{r}
+rawdata <- read.csv(file="clean_data.csv",header=TRUE,sep=",")
+rawdata <- na.omit(rawdata)
+dim(rawdata)
+summary(rawdata)
+```
+
+```{r}
+anyNA(rawdata)
+```
+
+
+
+### 2.4.1 Area vs Price
+
+Generally speaking, as the size of the house increases, the price of the house increases. For the establishment of subsequent models, we have added a Log_Sale_Price column ($Log\_Sale\_Price = Log(Sale\_Price)$), which may improve the accuracy of subsequent models. Although the proportional relationships exhibited by Sale Price and Log(Sale Price) are not identical, they show similar trends.
+
+```{r echo = FALSE}
+
+p1 <- rawdata %>% ggplot(aes(x = Building_Square_Feet, y = Sale_Price)) +
+  geom_point() +
+  xlab("Building Square Feet") +
+  ylab("Sale Price")
+p2 <- rawdata %>% ggplot(aes(x = Building_Square_Feet, y = Log_Sale_Price)) +
+  geom_point() +
+  xlab("Building Square Feet") +
+  ylab("Log Sale Price")
+
+ggarrange(p1,p2,ncol=1,nrow=2,labels=c("A","B"))
+```
+
+
+### 2.4.2 Rooms vs Price
+
+The number of rooms may be positively correlated with area, which in turn is positively correlated with Sale_Price. Plotting the results according to the graph below, this is indeed the case. However, the positive correlation becomes weak or even disappears when the number of rooms exceeds 12, so items with more than 12 rooms can be regarded as an extreme case, and in the follow-up analysis, it can be decided whether to eliminate it according to the performance of the model.
+
+```{r echo = FALSE}
+
+rawdata %>% ggplot(aes(x=as.factor(Rooms), y=Sale_Price)) +
+  geom_boxplot() +
+  xlab("Rooms") +
+  ylab("Sale Price")
+
+```
+
+### 2.4.3 Age vs Price
+
+Generally speaking, the newer the house, the higher the price. But the correlation is not very strong.  
+
+```{r echo = FALSE}
+
+rawdata %>% ggplot(aes(x=as.factor(Age), y=Sale_Price)) +
+  geom_boxplot() +
+  xlab("Year Built") +
+  ylab("Sale Price") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+## 2.4 Statistical learning techniques
+
+Data analysis was performed using R models to compare between and complete predictions. These models are: (1) supervised data with an emphasis on inference (generalized linear models (e.g. linear regression, logistic regression, and polynomial regression ); (2) supervised data with an emphasis on prediction (linear classifiers, decision trees, random forest, neural networks, non-linear SVMs); (3) unsupervised data (Clustering - K-means).
+
+1. Supervised data with an emphasis on inference
+
+To analyze the data, we apply logistic regression, which is an appropriate regression analysis for elucidating the link between a binary or dichotomous dependent variable and one or more independent variables. This approach requires few computer resources and scaled input characteristics, and it is simple to comprehend and normalize.
+
+2. Supervised data with an emphasis on prediction
+
+* Decision tree: When evaluating the classification tree outcomes, the decision tree is used to anticipate qualitative responses and corresponds to the most common class of training data in the region. This method enables us to establish a framework for quantifying the worth of the results and the likelihood of reaching them. It also provides for a more accurate representation of the projected outcomes.
+
+* Random forests: In training data and output classification, random forests build a large number of decision trees. It outperforms bagged trees as an ensemble learning approach for classification in that its variance is minimized when we average the trees by combining the predictors of the trees such that each tree depends on the value of a random vector that is sampled individually. This model analyzes only a subset of the characteristics in each split of the tree rather than all of them. It outperforms decision trees on high-dimensional data and learns the data faster. The variance is averaged out when we average all of the decision trees in the random forest, resulting in a minimal bias.
+
+
+* Neural networks: We utilized neural networks to generalize linear models that go through multi-stage processing to make judgments. These models are inspired by the structure of biological neural networks in the human brain and are meant to mimic how humans examine data. This method enables for the extraction of information from enormous volumes of data and the development of sophisticated models.
+
+The cross-validation approach is used to evaluate the model's prediction performance by using one-third of the data subset as a test set and two-thirds as a training set. With 7691 rows, the dataset has a big enough test set to make predictions. The training error rate may underestimate the test error rate if cross-validation is not used.
+
+3.  Unsupervised data
+$k$-means clustering is the algorithm for clustering.Iteratively improving the $\mu_i$ prototypes of $k$ clusters. It first pick $k$ random objects as the initial $\mu_i$ prototypes, then find for each object the closest prototype and assign to that cluster. After that, we calculate the averages for each cluster to get new $\mu_i$, and repeat until convergence. 
+
+
+### 2.4.1 Supervised data with an emphasis on prediction result statistics and evaluation criteria
+We use the construction of confusion matrices to calculate the test accuracy (all correct predictions divided by the total number of test sets) as a result statistic to evaluate the accuracy of the model, which in turn is used for model performance evaluation. The test accuracy is simply calculated by (1 - test error rate). The higher the test accuracy achieved by a model, the more suitable it is for the project.
+With a total of 1 (or 2) targets to predict for this project, we may encounter situations where different models represent different optimal test accuracies. In order to make the evaluation process more objective and efficient, we set the evaluation rules in advance. First, the best-fitting model we are looking for must have the maximum number of best predictions among all models. Because we try to eliminate the unintended effects of extreme results, we choose models that give accurate predictions in most cases. If more than one model meets this requirement, we will choose the model with the greatest average test accuracy, which indicates better overall performance.
+
+
+
+## 2.5 Module Build-up
+
+### 2.5.1 Supervised data with an emphasis on inference
+
+
+```{r}
+head(rawdata)
+```
+```{r}
+phenotype <- 'Sale_Price'
+predictors <- c(
+"Property_Class","Rooms",	"Bedrooms",	"Basement",	"Fireplaces",	"Central_Air",	"Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Walkfac","Total_Baths"
+)
+```
+Here, we treat the sale price as a response, and we choose basic charateritics of the house as predictors, such as longtitude, latitude, and building square feet. 
+
+```{r}
+response <- rawdata[,phenotype]
+active_set <- rawdata[,predictors]
+```
+
+### Linear regression of sale price
+
+```{r}
+full <- lm(response ~ ., data = data.frame(active_set))
+summary(full)
+```
+We can see BasementPartial, Fireplaces, Central_Air , Building_Square_Feet, Land_Square_Feet, Longitude, Latitude , WalkfacWalker's Paradise, Total_Baths  is important factor to the sales price. Especially the location contribute to the sales price more, which is longitude and latitude, and then fireplaces and central air contribute to the sale price.
+
+Then we delete bedrooms, to just check the model
+
+```{r}
+full <- lm(response ~ . -Bedrooms   , data = data.frame(active_set))
+summary(full)
+```
+
+choose numerical data to check the correlation
+```{r}
+predictors_num <- c(
+"Rooms",	"Bedrooms", "Fireplaces",	"Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Total_Baths"
+)
+```
+
+### Check correlations
+
+```{r}
+cor(rawdata[,predictors_num])
+```
+we can see there is a strong correlation between rooms and bedrooms and Building_Square_Feet, and we can also see the rooms and bedroos is related to the total baths. 
+
+```{r}
+predictors <- c(
+"Property_Class","Rooms",	"Bedrooms",	"Basement",	"Fireplaces",	"Central_Air",	"Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Walkfac","Total_Baths","Sale_Price"
+)
+```
+
+Here, we preprocess data for For logistic regression about central air. To determine if we can from predictors to see whether we have centrail air.  
+```{r}
+active_set_2 <- rawdata[,predictors]
+```
+
+
+
+### Perform logistic regression about central air
+
+
+```{r}
+glm.fit=glm(as.factor(rawdata$Central_Air)~.,
+data=data.frame(active_set_2),family=binomial)
+
+summary(glm.fit)
+```
+From the data, we can see many factors is related to the centrail air, we can see the most important factor is sale price and the building square feet. To our surprise, we can see the location is almost nothing to do with the central air, but we know location is very important to the sale price. 
+
+### Perform logistic regression about Basement
+
+```{r}
+glm.fit=glm(as.factor(rawdata$Basement)~.,
+data=data.frame(active_set_2),family=binomial)
+
+summary(glm.fit)
+```
+Now we want to check, how to know if the house has basement, we can see the sale price and land square feet is strong related to the basement.It also make sense, we have big land square feet and higher price, we will have basement. 
+
+
+### Multinomial Regression about Walkfac
+
+Now we want to check the multinational regression, we can see there are four level "Car-Dependent", "Somewhat Walkable","Very Walkable", "Walker's Paradise". 
+```{r}
+rawdata$Walkfac <- factor(rawdata$Walkfac,levels=c("Car-Dependent", "Somewhat Walkable","Very Walkable", "Walker's Paradise"),labels=c(1,2,3,4))##reorder the data
+head(rawdata)
+```
+
+
+```{r}
+#pom = polr(as.factor(rawdata$Walkfac) ~ Longitude + Latitude + Walkscore, data = rawdata, Hess=TRUE)
+#summary(pom)
+```
+
+```{r}
+rawdata$Walkfac=as.factor(rawdata$Walkfac)
+rawdata$Walkfac <- relevel(rawdata$Walkfac, ref = "1" )
+```
+
+
+```{r}
+mod.multinom <- multinom(as.factor(rawdata$Walkfac) ~ Longitude + Latitude+Walkscore  ,data=rawdata)
+summary(mod.multinom)
+```
+
+1.From the output above, the iteration number is 100, and converge fast to 173, can be used in comparisons of nested models\
+2.We can see one unit increase in the Longtitude is associated with 5 increase log odds for somewhat walkable vs car. We can see one unit increase in the walkscore is associated with 5.89 increase for car vs somewhat walkable.\
+3.With one unite in walkscore, is associated with 25 increase log odds to choose car vs walker paradise
+
+```{r}
+Anova(mod.multinom)
+```
+We can see all the factors contribute to this model. 
+
+
+### 2.5.2 Supervised data with an emphasis on prediction
+
+
+### decision tree 
+
+```{r}
+predictors3 <- c(
+"Property_Class","Rooms",	"Bedrooms",	"Basement",	"Fireplaces",	"Central_Air",	"Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Walkfac","Total_Baths","Log_Sale_Price"
+)
+
+active_set_3 <- rawdata[,predictors3]
+```
+
+Set a seed to divide the entire data set into test and training sets (1/3, 2/3).
+```{r}
+
+attach(active_set_3)
+set.seed(8)
+cu.train = sample(1: nrow(active_set_3), 2*nrow(active_set_3)/3)
+cu.test = active_set_3[-cu.train,]
+CU.test = active_set_3[-cu.train]
+tree.chicago=tree(Log_Sale_Price~., active_set_3, subset = cu.train)
+summary(tree.chicago)
+```
+
+```{r}
+chicago.predict = predict(tree.chicago, cu.test)
+mean((chicago.predict-cu.test$Log_Sale_Price)^2)
+```
+
+
+```{r}
+#plot(tree.chicago)
+#text(tree.chicago,pretty=0)
+draw.tree(tree.chicago, cex=0.8)
+```
+```{r results="hide", fig.show="hide"}
+#perform cross validation 
+cv.chicago = cv.tree(tree.chicago)
+```
+
+```{r warning = FALSE}
+#perform cross validation 
+plot(cv.chicago$size, cv.chicago$dev, type='b')
+```
+we can see cv around cv=7 or 8 is best. 
+
+```{r}
+##this use rpart methods , we can see the prune tree 
+tree_chicago=rpart(response~. ,method="anova", data=data.frame(active_set))
+prchicago<- prune(tree_chicago, cp=tree_chicago$cptable[which.min(tree_chicago$cptable[,"xerror"]),"CP"])
+```
+
+```{r}
+printcp(tree_chicago) # display the results
+plotcp(tree_chicago) # visualize cross-validation results
+summary(tree_chicago) # detailed summary of splits
+```
+
+
+```{r}
+#plot(tree_chicago ,uniform=TRUE, main="Regression Tree for Sale price ")
+#text(tree_chicago,use.n=TRUE, all=TRUE, cex=.8)
+
+draw.tree(tree_chicago, cex=0.8)
+```
+Here we can see the prune tree. 
+
+### Random Forest
+
+Set a seed to divide the entire data set into test and training sets (1/3, 2/3).
+
+```{r}
+set.seed(1)
+aa.train = sample(1:nrow(active_set_3), 2*nrow(active_set_3)/3)
+aa.test = active_set_3[-aa.train, "Log_Sale_Price"]
+```
+
+```{r}
+# We tested tunegrid <- expand.grid(mtry = c(1:15)), to save time in Kint, we just use 12:14 here
+tunegrid <- expand.grid(mtry = c(12:14))
+rf_model <- train(Log_Sale_Price~., data = active_set_3, subset = aa.train, method = "rf", trControl = trainControl(method = "cv", number = 5), tuneGrid =tunegrid, prox = TRUE, allowParallel = FALSE)
+
+```
+
+
+
+```{r}
+rf_model
+```
+
+```{r}
+tune_rf <- randomForest(Log_Sale_Price~.,
+                          data = active_set_3,
+                          ntree = 500,
+                          #mtry = as.integer(rf_model$bestTune),
+                          mtry =13,
+                          importance= TRUE,
+                          na.action = na.omit,
+                          replace = TRUE)
+
+yhat.tune = predict(tune_rf, newdata = active_set_3[-aa.train,])
+mean((yhat.tune - aa.test)^2)                       
+```
+As a consequence of tweaking the forest, the mtry is set to 13 since the MSE/RMSE is decreased in this scenario. Then, using the modified model, forecast the Log_Sale_Price and see whether the MSE can be improved.
+As a result, the MSE is 0.01652111. As an example, consider the following forecast result.
+
+```{r}
+plot(yhat.tune, aa.test)
+abline(0, 1, col = "blue")
+```
+
+
+```{r}
+importance(tune_rf)
+varImpPlot (tune_rf)
+```
+\
+We can see according to random forest graph, we can see latitude and longtitude is most important, then it is building square feet, and then is land square feet. 
+Now, we want to perform the random forest to check which factors are important to the sales price, without surprise, we can see location and building square feet contribute to much of the sales proce/ 
+
+### Perform SVM
+
+
+We treat the walkfac as response. Kernel is poly
+
+```{r}
+phenotype <- 'Walkfac'
+predictors <- c(
+"Property_Class","Rooms",	"Bedrooms",	"Basement",	"Fireplaces",	"Central_Air",	"Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Total_Baths"
+)
+```
+Here we do the svm about classification of the walkfac. it has 4 level 1,2,3,4. 
+
+
+```{r}
+response <- rawdata[,phenotype]
+active_set <- rawdata[,predictors]
+```
+
+
+Split the Train and Test set
+```{r}
+sample = sample(1:nrow(active_set), nrow(active_set)*0.7)
+svm.train = active_set[sample,]
+svm.test = active_set[-sample,]
+response_train <- response[sample]
+response_test <- response[-sample]
+```
+
+
+Here we use the ksvm, and we use kernel is polydot. 
+```{r}
+chicago.svm_poly <- ksvm(response_train~.,data=data.frame(svm.train),
+          kernel = "polydot", C = 1)
+```
+
+
+### Kernel is radial
+```{r}
+chicago.svm_rad <- ksvm(response_train~.,data=data.frame(svm.train),
+          kernel = "rbfdot", C = 1)
+```
+
+### When kernel is poly
+```{r}
+pred <- predict(chicago.svm_poly, newdata = data.frame(svm.test), type = "response")
+ctable=table(pred, response_test)
+```
+
+
+```{r }
+accuracy <- sum(diag(ctable)/sum(ctable))
+accuracy
+```
+we can see 98%
+
+
+
+### When kernel is rad
+```{r}
+pred <- predict(chicago.svm_rad, newdata = data.frame(svm.test), type = "response")
+ctable=table(pred, response_test)
+```
+
+```{r }
+accuracy <- sum(diag(ctable)/sum(ctable))
+accuracy
+```
+we can see accuracy is 95.7%
+
+We can compare the accuracy between the kernel poly and radial, we can see the poly accuracy is high. 
+```{r}
+set.seed(20)
+roc_test <- roc(response = response_test, predictor =as.numeric(pred),            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
+            print.auc=TRUE, show.thres=TRUE)
+```
+
+\
+we can see it is very preicise
+
+
+
+
+### Neural network
+
+Here, we train the neural network and we make the response is walkfac. We want to see the predictors, can predict the walk fac. 
+
+```{r}
+phenotype <- 'Walkfac'
+predictors <- c(
+"Rooms","Bedrooms",	"Fireplaces","Central_Air","Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Total_Baths"
+)
+```
+
+
+
+
+```{r}
+response <- rawdata[,phenotype]
+active_set <- rawdata[,predictors]
+```
+
+
+```{r}
+select_var <- c(
+"Rooms","Bedrooms",	"Fireplaces","Central_Air","Building_Square_Feet",	"Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Total_Baths",'Walkfac'
+)
+```
+
+
+
+Train and Test set
+```{r}
+subset=rawdata[,select_var]
+set.seed(20)
+sample = sample(1:nrow(active_set), nrow(active_set)*0.7)
+neural.train =subset[sample,]
+neural.test = subset[-sample,]
+#response_train <- response[sample]
+#response_test <- response[-sample]
+```
+
+
+
+```{r}
+neural_model <- neuralnet::neuralnet(Walkfac ~ ., data=neural.train, hidden=c(5,2), linear.output=FALSE, threshold=0.01)
+```
+
+```{r}
+plot(neural_model)
+```
+
+```{r}
+walk_perform <- neuralnet::compute(neural_model,neural.test[1:11])
+```
+
+```{r}
+#store the net.results column 
+#prediction = walk_perform$net.result
+walk_results <- data.frame(actual = neural.test$Walkfac , prediction = walk_perform$net.result)
+#walk_results <- data.frame(actual = response_test , prediction = max.col(prediction))##choose max probability as our prediction
+head(walk_results)
+```
+
+# 2.5.3 Unupervised learning
+
+```{r}
+rawdata %>% ggvis(~Longitude, ~Latitude, fill = ~Walkfac) %>% layer_points()
+```
+
+```{r}
+rawdata %>% ggvis(~Walkfac, ~Rooms, fill = ~Property_Class) %>% layer_points()
+```
+
+
+```{r}
+rawdata %>% ggvis(~Log_Sale_Price, ~Rooms, fill = ~Walkfac) %>% layer_points()
+```
+
+The data set doesn’t need to be normalized
+```{r}
+subset1 <- rawdata[c(14:15,17)]
+set.seed(1234)
+ind <- sample(2, nrow(subset1), replace=TRUE, prob=c(0.67, 0.33))
+train <- subset1[ind==1, 1:3]
+head(train)
+test <- subset1[ind==2, 1:3]
+head(test)
+```
+
+
+```{r}
+# Compose training labels
+trainLabels <- subset1[ind==1,3]
+# Compose test labels
+testLabels <- subset1[ind==2, 3]
+# Inspect result
+#print(testLabels)
+```
+
+
+```{r}
+# Build the model
+pred <- knn(train = train, test = test, cl = trainLabels, k=3)
+# Inspect 'pred'
+#pred
+```
+
+
+```{r}
+CrossTable(x = testLabels, y = pred, prop.chisq=FALSE)
+```
+
+
+```{r}
+kmeans.re <- kmeans(subset1, 4)
+kmeans.re$centers
+kmeans.re$totss
+kmeans.re$size
+```
+
+
+```{r}
+cm <- table(subset1$Walkfac, kmeans.re$cluster)
+cm
+```
+
+
+```{r}
+bss <- numeric()
+wss <- numeric()
+
+# Run the algorithm for different values of k 
+set.seed(1234)
+
+for(i in 1:10){
+
+  # For each k, calculate betweenss and tot.withinss
+  bss[i] <- kmeans(subset1, centers=i)$betweenss
+  wss[i] <- kmeans(subset1, centers=i)$tot.withinss
+
+}
+
+# Between-cluster sum of squares vs Choice of k
+p3 <- qplot(1:10, bss, geom=c("point", "line"), 
+            xlab="Number of clusters", ylab="Between-cluster sum of squares") +
+  scale_x_continuous(breaks=seq(0, 10, 1)) +
+  theme_bw()
+
+# Total within-cluster sum of squares vs Choice of k
+p4 <- qplot(1:10, wss, geom=c("point", "line"),
+            xlab="Number of clusters", ylab="Total within-cluster sum of squares") +
+  scale_x_continuous(breaks=seq(0, 10, 1)) +
+  theme_bw()
+
+# Subplot
+grid.arrange(p3, p4, ncol=2)
+```
+
+
+```{r}
+subset2 <- rawdata[c(3,6,7,11:15,17,20)]
+bss <- numeric()
+wss <- numeric()
+
+# Run the algorithm for different values of k 
+set.seed(1234)
+
+for(i in 1:10){
+
+  # For each k, calculate betweenss and tot.withinss
+  bss[i] <- kmeans(subset2, centers=i)$betweenss
+  wss[i] <- kmeans(subset2, centers=i)$tot.withinss
+
+}
+
+# Between-cluster sum of squares vs Choice of k
+p3 <- qplot(1:10, bss, geom=c("point", "line"), 
+            xlab="Number of clusters", ylab="Between-cluster sum of squares") +
+  scale_x_continuous(breaks=seq(0, 10, 1)) +
+  theme_bw()
+
+# Total within-cluster sum of squares vs Choice of k
+p4 <- qplot(1:10, wss, geom=c("point", "line"),
+            xlab="Number of clusters", ylab="Total within-cluster sum of squares") +
+  scale_x_continuous(breaks=seq(0, 10, 1)) +
+  theme_bw()
+
+# Subplot
+grid.arrange(p3, p4, ncol=2)
+```
+
+
+```{r}
+set.seed(1234)
+kmeans.re2 <- kmeans(subset2, centers=5)
+# Mean values of each cluster
+aggregate(subset2, by=list(kmeans.re2$cluster), mean)
+```
+
+
+```{r}
+ggpairs(cbind(subset2, Cluster=as.factor(kmeans.re2$cluster)),
+        columns=1:6, aes(colour=Cluster, alpha=0.5),
+        lower=list(continuous="points"),
+        upper=list(continuous="blank"),
+        axisLabels="none", switch="both") +
+        theme_bw()
+```
+
+
+
+
+# 3. Results
+### Linear regression
+
+We do the linear regression,  Sale price is our response, and predictors are "Property_Class","Rooms","Bedrooms","Basement","Fireplaces","Central_Air","Building_Square_Feet","Land_Square_Feet","Age","Longitude","Latitude","Walkscore","Walkfac","Total_Baths".
+According to the linear regression result, we can see BasementPartial  , Fireplaces, Central_Air , Building_Square_Feet, Land_Square_Feet, Longitude, Latitude , WalkfacWalker's Paradise, Total_Baths  is important factor to the sales price. Especially the location contribute to the sales price more, which is longitude and latitude, and then fireplaces and central air contribute to the sale price.
+
+### Logistic regression
+
+Then we do the logistic regression about the central air, we want to know, based on the predictors, we want to know which is related to the central air, we can see, for example, rooms and BasementPartial and sales price is important to have central air, especially sales price, is important to the central air, the sales price higher, and we more likely to have central air. Also, we do the logistic regression about the basement.
+
+### Multinomial regression
+
+Then We perform multinomial regression about Walkfac,   we want to know how to perform 4 level "Car-Dependent", "Somewhat Walkable","Very Walkable", "Walker's Paradise". 
+We can see longitude and latitude  walkscore, is contribute to this formulation.
+
+### Decision tree
+
+Then we do the decision tree method to predict sales price, we also can see the latitude and longitude is important to the sales price, and then is building square feet, this result is also same as linear regression. The MSE for this model is 0.1362816 and the RMSE is 0.367.
+
+### Random Forest
+
+Then we perform random forest, we want to check which factor is important to sales price, we use the importance function, we can see the latitude, longitude and building square feet, land square feet and age is important to the sales price. The MSE for this model is 0.01652111 and the RMSE is 0.128.
+
+### SVM
+
+Here, we use Walkfac, as response, and predictors,  we want to know if we can use SVM methods. To classify them, we use different kernel “polydot”,”rbfdot”,we can see if we use the polynomial kernel the accuracy is better than the radial kernel . The AUC for polynomial is 0.978. The result is very precise. 
+
+### Neural network
+
+From the model, we can see that with hidden layer value equals to 5 we can get more accurate outcomes comparing to hidden layer value equals to 2.
+
+### Unsupervised learning (K means clustering)
+
+Here, we want to check whether there are clusters in the model. About the walkfac, it is hard to find some patterns from the graph. Then we can perform k means clustering to check, we can see from the graph, we can see 4 clusters is a good choice, which is also exactly data set tell us. 
+
+
+
+# 4. Conclusions
+
+## 4.1 Significance
+
+In supervised data with an emphasis on inference part, we find that there is a strong correlation between rooms and bedrooms and Building_Square_Feet. Then we use other methods do some related analysis and we get several points:
+1.From multinomial regression about Walkfac, we explore the relationship among longitude, latitude and Walkfac, the iteration number is 100, and converge fast to 173, which can be used in comparisons of nested models.
+2.We find one unit increase in the Longtitude is associated with 5 increase log odds for somewhat walkable vs car. We can see one unit increase in the walkscore is associated with 5.89 increase for car vs somewhat walkable.
+3.With one unite in walkscore, is associated with 25 increase log odds to choose car vs walker paradise.
+
+
+The result session focuses on the final performance of our prediction models, as well as the analysis of the significance of our research results.
+Cross-Validation test error rates for the outcomes predicted by models are shown in the Supervised data with an emphasis on the prediction decision tree part. The model express variables' test error. For another part, random forest stands out with higher test accuracy. For SVM, different kernel produces different test accuracy. The radial kernel has a better effect than the poly kernel. However, compared to the results from previous plots, the initial guess is a little bit different. Overall, our selected models are capable of obtaining a more reliable result than a random guess.
+
+In the random forest part, we can discover that latitude and longitude are the most important variables, the second is building square feet, and then land square feet. Then we examine the results by using random forest and we can see that the results are quite precise.
+
+Based on the data analysis results, we can see all the machine learning methods, the most important factor is location, then is building square feet, it quite makes sense. And then we can see the facility is second most important to the house price which including central air and fireplace, age, property class. At the same time, we have established a high-accuracy prediction model, and made high-accuracy predictions on housing prices based on 14 variables. Finally, based on unsupervised learning, we cluster the houses according to latitude and longitude and summarize the features of different categories.
+
+This project has big and detailed data with high accuracy models, and we believe it provided us with very insightful results about the Chicago house market . These models estimate the implied price of each feature in the price distribution, so it can better explain real-world phenomena and provide a more comprehensive understanding of the relationship between housing characteristics and prices.
+
+
+## 4.2 Restrictions
+
+This section will explain a project limitation and the accompanying recommendations for additional investigation. Several potentially valuable predictors (e.g., home quality, renovation time, and so on) were omitted from this research. Nonetheless, home quality is a challenging element to quantify and categorize. It will be impossible to obtain objective results if there are no generally acknowledged evaluation criteria. So, after careful study, we opted against using this variable in the model for the time being. In future studies, a scientific housing quality system needs to be established, and new predictors should be included in the model.
+
+
+
+
+
+# Bibliography
+
+Bailey, M. J., Muth, R. F., & Nourse, H. O. (1963). A regression method for real estate price index construction. Journal of the American Statistical Association, 58(304), 933-942.\
+
+Benjamin, J., Guttery, R., & Sirmans, C. F. (2004). Mass appraisal: An introduction to multiple regression analysis for real estate valuation. Journal of Real Estate Practice and Education, 7(1), 65-77.\
+
+Isakson, H. (1998). The review of real estate appraisals using multiple regression analysis. Journal of Real Estate Research, 15(2), 177-190.\
+
+Isakson, H. R. (2001). Using multiple regression analysis in real estate appraisal. The Appraisal Journal, 69(4), 424.\
+
+Mak, S., Choy, L., & Ho, W. (2010). Quantile regression estimates of Hong Kong real estate prices. Urban Studies, 47(11), 2461-247\
+
+Pavlov, A. D. (2000). Space‐varying regression coefficients: A semi‐parametric approach applied to real estate markets. Real Estate Economics, 28(2), 249-283.
+
+
+
+
+
+
+
+
+
